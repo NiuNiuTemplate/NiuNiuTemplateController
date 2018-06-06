@@ -48,6 +48,12 @@
     [super viewWillDisappear:animated];
 }
 
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    self.tableView.top = 0.f;
+    self.tableView.size = self.view.size;
+}
+
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
 }
@@ -84,9 +90,9 @@
                      JSONResponseBase *respond = responseObject;
                      if (respond.isSuccess) {
                          [self handleWithResponsData:respond isLoadMore:isLoadMore];
-                         [API showSuccessStatus:respond.message];
+                         [self showSuccessMsg:respond.message thenDefaultMsg:nil];
                      } else {
-                         [API showSuccessStatus:respond.message];
+                         [self showErrorMsg:respond.message thenDefaultMsg:nil];
                      }
                  } completion:^(AFHTTPRequestOperation *operation) {
                      [self handleWithCompletion];

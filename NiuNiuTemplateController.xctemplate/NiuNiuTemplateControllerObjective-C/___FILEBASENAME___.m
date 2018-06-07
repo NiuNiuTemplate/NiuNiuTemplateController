@@ -7,6 +7,7 @@
 //
 
 #import "___FILEBASENAME___.h"
+#import "UITableView+FDTemplateLayoutCell.h"
 #import "UIViewController+NiuNiu.h"
 #import "UITableView+NiuNiuQiChe.h"
 #import "NNRefreshWheelHeader.h"
@@ -144,22 +145,43 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSString *cellIdentifier = self.cellIdentifiers[indexPath.row];
-    id model = self.dataArray[indexPath.row];
-    UITableViewCell<NNViewModelProtocol> *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
-    if ([cell respondsToSelector:@selector(configureViewWithModel:)]) {
-        [cell configureViewWithModel:model];
-    }
-    if ([cellIdentifier isEqualToString:NSStringFromClass([UITableViewCell class])]) {
+    NSString *reuseIdentifier = self.cellIdentifiers[indexPath.row];
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier forIndexPath:indexPath];
+    
+    //配置cell需要的属性 (不影响高度计算)
+    if ([reuseIdentifier isEqualToString:NSStringFromClass([UITableViewCell class])]) {
         
-    } else if ([cellIdentifier isEqualToString:NSStringFromClass([UITableViewCell class])]) {
+    } else if ([reuseIdentifier isEqualToString:NSStringFromClass([UITableViewCell class])]) {
         
     }
+    
+    //渲染数据，用于计算高度
+    [self configureCell:cell forRowAtIndexPath:indexPath];
+    
     return cell;
 }
 
+- (void)configureCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if ([cell respondsToSelector:@selector(configureViewWithModel:)]) {
+        id model = self.dataArray[indexPath.row];
+        [(UITableViewCell<NNViewModelProtocol> *)cell configureViewWithModel:model];
+    }
+}
+
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 0.f;
+    NSString *reuseIdentifier = self.cellIdentifiers[indexPath.row];
+    CGFloat height = 0.f;
+    if ([reuseIdentifier isEqualToString:NSStringFromClass([UITableViewCell class])]) {
+        height = 100.f;
+    } else {
+        height = [tableView fd_heightForCellWithIdentifier:reuseIdentifier
+                                          cacheByIndexPath:indexPath
+                                             configuration:^(id cell)
+        {
+            [self configureCell:cell forRowAtIndexPath:indexPath];
+        }];
+    }
+    return height;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
